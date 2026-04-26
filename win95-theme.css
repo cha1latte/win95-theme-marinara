@@ -2,6 +2,23 @@
  * All custom selectors are prefixed `win95-`. Engine semantic CSS vars
  * are overridden at :root so we don't fight component-level selectors. */
 
+/* ── Pixel font (W95FA) ──────────────────────────────────────────────
+ * The CSS injected by the extension lives in a `<style>` tag, so
+ * relative `url(...)` would resolve against the page origin and 404.
+ * The font is therefore inlined as a base64 data URI by `build.js`,
+ * which substitutes the `__W95FA_PLACEHOLDER__` token below at bundle
+ * time. If `w95fa.woff2` is missing from the repo root the placeholder
+ * stays as-is, the URL silently 404s, and the fallback chain
+ * (Pixelated MS Sans Serif → MS Sans Serif → Tahoma) takes over.
+ * Source: https://www.dafont.com/w95fa.font (open license, ~30 KB). */
+@font-face {
+  font-family: "W95FA";
+  src: url("__W95FA_PLACEHOLDER__") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ── Palette + tokens (overrides engine vars in both light & dark) ── */
 :root,
 [data-theme="dark"],
@@ -51,8 +68,8 @@
   --radius: 0;
 
   --font-y2k:
-    "MS Sans Serif", "Pixelated MS Sans Serif", "Microsoft Sans Serif",
-    Tahoma, Geneva, sans-serif;
+    "W95FA", "Pixelated MS Sans Serif", "MS Sans Serif",
+    "Microsoft Sans Serif", Tahoma, Geneva, sans-serif;
 
   --app-font-size: 0.75rem;
 
@@ -1308,6 +1325,91 @@ input[type="radio"]:checked::after {
   text-shadow: none !important;
 }
 
+/* Modal native header → Win95 titlebar. The engine's Modal renders
+ * its own header (`<h2>{title}</h2>` + close `<X>` button) below
+ * our decorative ::before strip — that produced a stacked
+ * empty-blue-strip + grey-header look that wasn't authentic. Hide
+ * the decorative strip on real modals only (.mari-modal-panel),
+ * drop the padding-top hack, and restyle the native header div as
+ * the actual Win95 title bar with white-on-blue title and an
+ * inset close button. .os-window (used elsewhere) keeps its
+ * decorative strip since those surfaces don't have native headers. */
+.mari-modal-panel {
+  padding-top: 0 !important;
+}
+
+.mari-modal-panel::before {
+  display: none !important;
+}
+
+.mari-modal-panel > .shrink-0.flex.items-center.justify-between {
+  background: linear-gradient(
+    to right,
+    var(--win95-title-active-1) 0%,
+    var(--win95-title-active-2) 100%
+  ) !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--win95-shadow) !important;
+  padding: 2px 2px 2px 6px !important;
+  min-height: 22px !important;
+  font-family: var(--font-y2k) !important;
+}
+
+.mari-modal-panel > .shrink-0.flex.items-center.justify-between > h2 {
+  color: var(--win95-hilite) !important;
+  font-size: 0.6875rem !important;
+  font-weight: bold !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 18px !important;
+  font-family: var(--font-y2k) !important;
+  letter-spacing: 0 !important;
+}
+
+/* Close button inside the native header — restyle as Win95 close
+ * button (small raised square with bold ×). The button keeps its
+ * onClick (Modal's onClose), so functionality is preserved. */
+.mari-modal-panel > .shrink-0.flex.items-center.justify-between > button {
+  background: var(--win95-face) !important;
+  border: 1px solid !important;
+  border-top-color: var(--win95-light) !important;
+  border-left-color: var(--win95-light) !important;
+  border-right-color: var(--win95-dark) !important;
+  border-bottom-color: var(--win95-dark) !important;
+  box-shadow:
+    inset 1px 1px 0 var(--win95-hilite),
+    inset -1px -1px 0 var(--win95-shadow) !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  width: 18px !important;
+  height: 16px !important;
+  min-width: 18px !important;
+  color: var(--win95-text) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.mari-modal-panel > .shrink-0.flex.items-center.justify-between > button:hover {
+  background: var(--win95-face) !important;
+  color: var(--win95-text) !important;
+}
+
+.mari-modal-panel > .shrink-0.flex.items-center.justify-between > button:active {
+  border-top-color: var(--win95-dark) !important;
+  border-left-color: var(--win95-dark) !important;
+  border-right-color: var(--win95-light) !important;
+  border-bottom-color: var(--win95-light) !important;
+  box-shadow:
+    inset 1px 1px 0 var(--win95-shadow),
+    inset -1px -1px 0 var(--win95-hilite) !important;
+}
+
+.mari-modal-panel > .shrink-0.flex.items-center.justify-between > button svg {
+  width: 10px !important;
+  height: 10px !important;
+}
+
 /* Form inputs inside dialogs need the standard Win95 sunken text-
  * control look. Engine often paints them with `bg-[var(--secondary)]
  * ring-1 ring-transparent focus:ring-...` which our token override
@@ -1665,7 +1767,9 @@ svg[class*="lucide-help"] {
 [data-component^="ChatArea"] [class*="bg-[linear-gradient"],
 [data-component^="ChatArea"] [class*="bg-[radial-gradient"],
 [data-component="RightPanel"] [class*="bg-[linear-gradient"],
-[data-component="RightPanel"] [class*="bg-[radial-gradient"] {
+[data-component="RightPanel"] [class*="bg-[radial-gradient"],
+[data-component="ChatSidebar"] [class*="bg-[linear-gradient"],
+[data-component="ChatSidebar"] [class*="bg-[radial-gradient"] {
   background: var(--win95-face) !important;
   background-image: none !important;
   box-shadow: none !important;
@@ -1675,13 +1779,182 @@ svg[class*="lucide-help"] {
  * `style={{ background: linear-gradient(...) }}`, character/preset
  * card icons same pattern). Catch via attribute substring match
  * on the `style` attribute. Scoped to chat-area surfaces + panels
- * so we don't disturb anything outside our theme reach. */
+ * so we don't disturb anything outside our theme reach. The
+ * ChatSidebar entry covers the GameSetupWizard mode-icon backdrop
+ * (a pink linear-gradient set inline on the icon container of the
+ * "New Game" / "Visual Novel" / "Game" rows). */
 [data-component^="ChatArea"] [style*="linear-gradient"],
 [data-component^="ChatArea"] [style*="radial-gradient"],
 [data-component="RightPanel"] [style*="linear-gradient"],
-[data-component="RightPanel"] [style*="radial-gradient"] {
+[data-component="RightPanel"] [style*="radial-gradient"],
+[data-component="ChatSidebar"] [style*="linear-gradient"],
+[data-component="ChatSidebar"] [style*="radial-gradient"] {
   background: var(--win95-face) !important;
   background-image: none !important;
+}
+
+/* ── Flatten Tailwind accent-color utilities on chrome ────────
+ * Various surfaces still leak through accent-colored icons and
+ * badges via Tailwind `text-{color}-{shade}` and `bg-{color}-{shade}`
+ * utilities — Personas empty-state (green User), Connections
+ * selected badge (blue circle + white check), Agents category
+ * icons (orange Regex, teal Writer), Browser stat icons (red
+ * Download/Comment counts), etc. Win95 chrome was essentially
+ * monochrome — the only accent colors were #000080 selection
+ * blue and #aa0000 destructive red. Flatten everything else
+ * inside our chrome scope to var(--win95-text)/var(--win95-face).
+ * Semantic Tailwind tokens (`text-foreground`, `text-muted`,
+ * `bg-card`, etc) don't match these substring patterns because
+ * they have no `-{shade}` digit suffix, so this rule leaves them
+ * alone — they're already remapped via the :root CSS vars. */
+:where(
+  [data-component="ChatSidebar"],
+  [data-component="RightPanel"],
+  [data-component^="ChatArea"],
+  [data-component="TopBar"],
+  .mari-modal-panel,
+  .os-window
+) :is(
+  [class*="text-amber-"],
+  [class*="text-orange-"],
+  [class*="text-red-"],
+  [class*="text-rose-"],
+  [class*="text-pink-"],
+  [class*="text-purple-"],
+  [class*="text-fuchsia-"],
+  [class*="text-violet-"],
+  [class*="text-indigo-"],
+  [class*="text-blue-"],
+  [class*="text-sky-"],
+  [class*="text-cyan-"],
+  [class*="text-teal-"],
+  [class*="text-emerald-"],
+  [class*="text-green-"],
+  [class*="text-lime-"],
+  [class*="text-yellow-"]
+) {
+  color: var(--win95-text) !important;
+}
+
+/* For background-color utilities the substring match needs to
+ * exclude Tailwind variants — `hover:bg-pink-500` shares the
+ * `bg-pink-` substring with the base utility, but only sets the
+ * bg on :hover. Forcing it always-on permanently activates the
+ * hover bg, which made the New button glow navy and would do
+ * the same to every other accent-hover element. The two-pronged
+ * `[class^="bg-..."]` (className starts with) plus
+ * `[class*=" bg-..."]` (preceded by a space, never `:`) catches
+ * the base utility wherever it sits in the className list while
+ * leaving variant-prefixed classes alone. */
+:where(
+  [data-component="ChatSidebar"],
+  [data-component="RightPanel"],
+  [data-component^="ChatArea"],
+  [data-component="TopBar"],
+  .mari-modal-panel,
+  .os-window
+) :is(
+  [class^="bg-amber-"],   [class*=" bg-amber-"],
+  [class^="bg-orange-"],  [class*=" bg-orange-"],
+  [class^="bg-red-"],     [class*=" bg-red-"],
+  [class^="bg-rose-"],    [class*=" bg-rose-"],
+  [class^="bg-pink-"],    [class*=" bg-pink-"],
+  [class^="bg-purple-"],  [class*=" bg-purple-"],
+  [class^="bg-fuchsia-"], [class*=" bg-fuchsia-"],
+  [class^="bg-violet-"],  [class*=" bg-violet-"],
+  [class^="bg-indigo-"],  [class*=" bg-indigo-"],
+  [class^="bg-blue-"],    [class*=" bg-blue-"],
+  [class^="bg-sky-"],     [class*=" bg-sky-"],
+  [class^="bg-cyan-"],    [class*=" bg-cyan-"],
+  [class^="bg-teal-"],    [class*=" bg-teal-"],
+  [class^="bg-emerald-"], [class*=" bg-emerald-"],
+  [class^="bg-green-"],   [class*=" bg-green-"],
+  [class^="bg-lime-"],    [class*=" bg-lime-"],
+  [class^="bg-yellow-"],  [class*=" bg-yellow-"]
+) {
+  background: var(--win95-face) !important;
+  background-color: var(--win95-face) !important;
+  background-image: none !important;
+}
+
+/* SVG `fill` attribute set via inline style — common on category
+ * icons that the Tailwind class flatten above misses (some icons
+ * carry the color on `style="color: #..."` directly rather than
+ * via a utility class). Force currentColor inheritance. */
+:where(
+  [data-component="ChatSidebar"],
+  [data-component="RightPanel"],
+  [data-component^="ChatArea"],
+  .mari-modal-panel,
+  .os-window
+) svg[style*="color"] {
+  color: var(--win95-text) !important;
+}
+
+/* Tailwind arbitrary CSS-variable tints — `bg-[var(--TOKEN)]/X`,
+ * `border-[var(--TOKEN)]/X`, etc. The named-color flatten above
+ * doesn't catch these because they don't have a `bg-{name}-{shade}`
+ * shape. Two cases worth handling explicitly:
+ *   sidebar-accent — used by ConnectionsPanel for the selected
+ *     connection row (`bg-[var(--sidebar-accent)]/50`); the /50
+ *     opacity makes our navy + grey field mix to a muddy purple.
+ *     Force full opacity navy with white text — the canonical
+ *     Win95 selection look.
+ *   destructive — used by SettingsPanel "Danger Zone" for the
+ *     selected scope row (`bg-[var(--destructive)]/10`) and
+ *     border (`border-[var(--destructive)]/30`); the low alpha
+ *     reads as peach. Flatten to the standard Win95 face + a
+ *     grey shadow border. The destructive RED on `text-` /
+ *     icon stays — that's the Win95-authentic warning color.
+ *   primary — used by some active-state buttons + tab underlines.
+ *     Re-snap to the active titlebar blue. */
+[class^="bg-[var(--sidebar-accent)]"],
+[class*=" bg-[var(--sidebar-accent)]"] {
+  background-color: var(--win95-title-active-1) !important;
+  background-image: none !important;
+  color: var(--win95-hilite) !important;
+}
+[class^="bg-[var(--sidebar-accent)]"] *,
+[class*=" bg-[var(--sidebar-accent)]"] * {
+  color: var(--win95-hilite) !important;
+}
+
+[class^="bg-[var(--destructive)]"],
+[class*=" bg-[var(--destructive)]"] {
+  background-color: var(--win95-face) !important;
+  background-image: none !important;
+}
+[class^="border-[var(--destructive)]"],
+[class*=" border-[var(--destructive)]"] {
+  border-color: var(--win95-shadow) !important;
+}
+
+[class^="bg-[var(--primary)]"],
+[class*=" bg-[var(--primary)]"] {
+  background-color: var(--win95-title-active-1) !important;
+  background-image: none !important;
+}
+
+/* Tailwind gradient utilities (`bg-gradient-to-{br|tr|...}` paired
+ * with `from-{color}-{shade}` and `to-{color}-{shade}`). The
+ * direction utility carries no color but defines the gradient
+ * scaffold; killing `background-image` on it nukes any from/to
+ * color stops the engine sets, regardless of which Tailwind palette
+ * names they used. Used heavily in ConnectionsPanel for provider
+ * badges and category tiles. */
+:where(
+  [data-component="ChatSidebar"],
+  [data-component="RightPanel"],
+  [data-component^="ChatArea"],
+  [data-component="TopBar"],
+  .mari-modal-panel,
+  .os-window
+) :is(
+  [class^="bg-gradient-to"],
+  [class*=" bg-gradient-to"]
+) {
+  background-image: none !important;
+  background-color: var(--win95-face) !important;
 }
 
 /* RecentChats pills on the home page. Engine renders as `<button
