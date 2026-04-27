@@ -8,12 +8,23 @@ It's a theme, not a window manager. Marinara's layout, navigation, and iconograp
 
 ## Screenshots
 
-> _Placeholder — drop screenshots here._
->
-> - `docs/conversation.png` — Conversation surface
-> - `docs/sidebar.png` — Left chat list
-> - `docs/modal.png` — A modal dialog with the Win95 frame
-> - `docs/settings.png` — Settings panel restyled
+### Home
+
+![Home page with Marinara wordmark, mode tiles, recent chats, and FAQ](docs/home.jpg)
+
+The empty-state home: navy gradient titlebar, three Win95-button mode tiles (Conversation / Roleplay / Game), Recent Chats as raised buttons, expandable FAQ row, classic IE3-blue underlined links to Marinara / LinkAPI / Huntercolliex.
+
+### Conversation
+
+![Conversation view with chat list sidebar and Themes panel open on the right](docs/conversation.png)
+
+Live chat with Professor Mari. Chat list down the left (active row in flat navy + white text), conversation in the middle (user bubbles flat `#000080`, assistant bubbles white-on-grey), Settings → Themes panel on the right showing the `Win95 Theme` row selected.
+
+### Roleplay + Appearance settings
+
+![Roleplay mode with appearance panel showing chat backgrounds](docs/roleplay.png)
+
+Roleplay mode with Settings → Appearance open. Chat background image picker on the right, Win95 trackbars, Win95 combobox arrow buttons, navy user message bubble, sharp-cornered chrome throughout.
 
 ## Installation
 
