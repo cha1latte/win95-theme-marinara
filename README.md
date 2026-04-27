@@ -26,6 +26,12 @@ Live chat with Professor Mari. Chat list down the left (active row in flat navy 
 
 Roleplay mode with Settings → Appearance open. Chat background image picker on the right, Win95 trackbars, Win95 combobox arrow buttons, navy user message bubble, sharp-cornered chrome throughout.
 
+### Dark mode
+
+![Win95 chrome rendered in dark mode — same bevels and titlebar gradient over a dark gray palette](docs/dark.png)
+
+Same chrome, dark palette. Flip the engine's **Settings → Appearance → Color Scheme** toggle to Dark and the whole theme swaps: face goes to `#2d2d2d`, text becomes `#e0e0e0`, links pop in `#6699ff`. Navy titlebars + cream-yellow tooltips stay the same in both modes (they read fine on either background). Bevel lightness ordering is preserved so beveled buttons / inputs / scrollbar thumbs still render correctly with the inverted palette.
+
 ## Installation
 
 1. Open Marinara Engine.
@@ -37,7 +43,7 @@ The skin takes effect immediately — no reload required.
 
 ## What it themes
 
-- **Palette.** Overrides the engine's semantic CSS variables (`--background`, `--foreground`, `--card`, `--primary`, `--border`, etc.) at `:root`, so every component picks up the Win95 colors without selector wars. Both `[data-theme="dark"]` and `[data-theme="light"]` resolve to the same Win95 palette — toggling theme mode is a no-op while the extension is enabled.
+- **Palette.** Overrides the engine's semantic CSS variables (`--background`, `--foreground`, `--card`, `--primary`, `--border`, etc.) so every component picks up the Win95 colors without selector wars. **Light + dark mode both supported** — flipping Marinara's Settings → Appearance dark/light toggle swaps the palette while keeping the same chrome / bevels / icons. Light is canonical Win95 (`#c0c0c0` gray, black text, `#000080` titlebar). Dark is a "what if Win95 had a dark mode" reskin (`#2d2d2d` face, light text, brighter `#6699ff` links) with the bevel lightness ordering preserved so 3D buttons still look right.
 - **Typography.** W95FA pixel font is base64-inlined in the bundle. `--font-y2k` leads with `'W95FA', 'Pixelated MS Sans Serif', 'MS Sans Serif', 'Microsoft Sans Serif', Tahoma, Geneva, sans-serif`. Body size sits at `0.75rem` (≈ 12 px) so the bitmap font renders close to its native ~11 px sweet spot.
 - **Buttons.** Raised bevel by default, pressed bevel on `:active`, dotted focus rectangle inside on `:focus-visible`. Disabled buttons get the etched gray text with the white shadow. Action buttons that the engine paints with `bg-[var(--primary)]` are flattened back to grey raised; segmented-toggle selected pills (`bg-[var(--primary)]/X` opacity variants) get the canonical Win95 pressed-in bevel.
 - **Form controls.** Inputs, textareas, and selects use the inset bevel. `<select>` elements get a custom 16-px chunky 3D arrow button on the right via inline-SVG background. Checkboxes and radios are restyled to 13 × 13 px with the canonical checkmark / dot.
