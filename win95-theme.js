@@ -32,6 +32,23 @@
   var panel = null, panelLoad = null;
 
   // ── Window chrome ────────────────────────────────────────────────
+  // Titlebar buttons used to embed `_` `□` `×` text glyphs but their
+  // baseline + size was font-dependent and made the symbols sit
+  // off-center inside the 16×14 button box. Embedded SVG gives us
+  // pixel-perfect placement on any font/zoom level.
+  var TITLEBAR_GLYPH_MIN =
+    '<svg viewBox="0 0 16 14" width="10" height="10" shape-rendering="crispEdges">' +
+      '<rect x="3" y="11" width="8" height="2" fill="currentColor"/>' +
+    '</svg>';
+  var TITLEBAR_GLYPH_MAX =
+    '<svg viewBox="0 0 16 14" width="10" height="10" shape-rendering="crispEdges">' +
+      '<path fill="currentColor" fill-rule="evenodd" d="M3 2h10v10H3zM4 4v7h8V4z"/>' +
+    '</svg>';
+  var TITLEBAR_GLYPH_CLOSE =
+    '<svg viewBox="0 0 16 14" width="10" height="10" shape-rendering="crispEdges">' +
+      '<polygon fill="currentColor" points="3,3 4,2 8,6 12,2 13,3 9,7 13,11 12,12 8,8 4,12 3,11 7,7"/>' +
+    '</svg>';
+
   function makeTitlebar(title) {
     var bar = document.createElement("div");
     bar.className = "win95-titlebar";
@@ -40,9 +57,9 @@
     bar.innerHTML =
       '<span class="win95-titlebar-title"></span>' +
       '<div class="win95-titlebar-buttons">' +
-        '<button class="win95-titlebar-btn win95-skip" data-act="min" aria-label="Minimize">_</button>' +
-        '<button class="win95-titlebar-btn win95-skip" data-act="max" aria-label="Maximize">□</button>' +
-        '<button class="win95-titlebar-btn win95-skip" data-act="close" aria-label="Close">×</button>' +
+        '<button class="win95-titlebar-btn win95-skip" data-act="min" aria-label="Minimize">' + TITLEBAR_GLYPH_MIN + '</button>' +
+        '<button class="win95-titlebar-btn win95-skip" data-act="max" aria-label="Maximize">' + TITLEBAR_GLYPH_MAX + '</button>' +
+        '<button class="win95-titlebar-btn win95-skip" data-act="close" aria-label="Close">' + TITLEBAR_GLYPH_CLOSE + '</button>' +
       '</div>';
     bar.querySelector(".win95-titlebar-title").textContent = title;
     // Buttons are decorative — clicks do nothing destructive.
@@ -184,7 +201,7 @@
     panel.innerHTML =
       '<div class="win95-settings-titlebar">' +
         '<span class="win95-settings-titlebar-title">Win95 Theme — Settings</span>' +
-        '<button class="win95-titlebar-btn win95-skip" data-w95="close" aria-label="Close">×</button>' +
+        '<button class="win95-titlebar-btn win95-skip" data-w95="close" aria-label="Close">' + TITLEBAR_GLYPH_CLOSE + '</button>' +
       '</div>' +
       '<div class="win95-settings-body">' +
         '<div class="win95-settings-row">' +
@@ -284,7 +301,11 @@
     "settings-2":    '<path fill-rule="evenodd" d="M6 1h4v2H6zM6 13h4v2H6zM1 6h2v4H1zM13 6h2v4h-2zM3 3h10v10H3zM6 6h4v4H6z"/>',
     "trash":         '<rect x="3" y="3" width="10" height="2"/><rect x="6" y="1" width="4" height="2"/><path fill-rule="evenodd" d="M4 5h8v9H4zM6 7h1v5H6zM9 7h1v5H9z"/>',
     "trash-2":       '<rect x="3" y="3" width="10" height="2"/><rect x="6" y="1" width="4" height="2"/><path fill-rule="evenodd" d="M4 5h8v9H4zM6 7h1v5H6zM9 7h1v5H9z"/>',
-    "search":        '<path fill-rule="evenodd" d="M2 2h7v7H2zM3 3v5h5V3z"/><rect x="9" y="9" width="2" height="2"/><rect x="11" y="11" width="2" height="2"/><rect x="13" y="13" width="2" height="2"/>',
+    // Tighter again: 4x4 lens + 2-step handle. Visible bounds
+    // x=3..11 (vs Lucide's full ~24-unit content). Combined with
+    // the global `padding-left: 2.25rem` rule on Search * inputs
+    // this should always clear placeholder text.
+    "search":        '<path fill-rule="evenodd" d="M3 3h4v4H3zM4 4v2h2V4z"/><rect x="7" y="7" width="2" height="2"/><rect x="9" y="9" width="2" height="2"/>',
     "home":          '<path fill-rule="evenodd" d="M8 2L1 8h2v6h10V8h2zM7 10v4h2v-4z"/>',
     "sparkles":      '<polygon points="6,2 7,5 10,6 7,7 6,10 5,7 2,6 5,5"/><rect x="11" y="2" width="2" height="3"/><rect x="10" y="3" width="4" height="1"/><rect x="11" y="11" width="2" height="3"/><rect x="10" y="12" width="4" height="1"/>',
     "smile":         '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><rect x="5" y="6" width="2" height="2"/><rect x="9" y="6" width="2" height="2"/><rect x="5" y="10" width="6" height="1"/>',
@@ -343,6 +364,11 @@
     "minimize":      '<rect x="3" y="11" width="10" height="2"/>',
     "minimize-2":    '<polygon points="9,7 13,3 13,5 11,7 13,9 13,11 9,11"/><polygon points="7,9 3,13 3,11 5,9 3,7 3,5 7,5"/>',
     "external-link": '<path fill-rule="evenodd" d="M2 4h8v10H2zM3 5v8h6V5z"/><rect x="9" y="2" width="5" height="1"/><rect x="13" y="2" width="1" height="5"/><polygon points="13,2 8,7 9,8 14,3"/>',
+    // Eye icons (used as toggle indicators in lorebook Enabled, etc).
+    // Pixel-art lens silhouette + center pupil square. Curves don't
+    // render crisp under shape-rendering="crispEdges" so we use rects.
+    "eye":           '<path fill-rule="evenodd" d="M2 7h12v3H2zM3 8v1h10V8z"/><rect x="7" y="6" width="2" height="4"/>',
+    "eye-off":       '<path fill-rule="evenodd" d="M2 7h12v3H2zM3 8v1h10V8z"/><rect x="7" y="6" width="2" height="4"/><polygon points="2,12 4,14 14,4 12,2"/>',
     "moon":          '<path d="M5 2h4v1H5zm-2 1h2v1H3zm-1 1h1v6H2zm1 6h1v2H3zm1 2h2v1H4zm2 1h6v1H6zm0-2h7v1H6zM5 9h7v1H5zM5 7h6v1H5zM5 5h6v1H5zM6 3h5v1H6z"/>',
     "loader":        '<rect x="7" y="2" width="2" height="3"/><rect x="7" y="11" width="2" height="3"/><rect x="2" y="7" width="3" height="2"/><rect x="11" y="7" width="3" height="2"/>',
     "loader-2":      '<rect x="7" y="2" width="2" height="3"/><rect x="7" y="11" width="2" height="3"/><rect x="2" y="7" width="3" height="2"/><rect x="11" y="7" width="3" height="2"/>',
