@@ -21,6 +21,8 @@
 
   var KEY_CHROME = "marinara-win95-chrome";
   var KEY_STATUSBAR = "marinara-win95-statusbar";
+  var KEY_BOOTSPLASH = "marinara-win95-bootsplash";
+  var SESSION_BOOT_KEY = "win95-boot-shown";
 
   function readBool(key, def) {
     var v = localStorage.getItem(key);
@@ -212,6 +214,13 @@
           '<input type="checkbox" id="w95-statusbar" data-w95="statusbar">' +
           '<label for="w95-statusbar">Show chat status bar</label>' +
         '</div>' +
+        '<div class="win95-settings-row">' +
+          '<input type="checkbox" id="w95-bootsplash" data-w95="bootsplash">' +
+          '<label for="w95-bootsplash">Show boot splash on session start</label>' +
+        '</div>' +
+        '<div class="win95-settings-row">' +
+          '<button class="win95-skip" data-w95="splash-now" style="margin-left: 22px; padding: 2px 10px;">Show splash now</button>' +
+        '</div>' +
         '<p class="win95-settings-help">Press <b>Ctrl+Shift+9</b> or visit <b>#win95</b> to reopen this panel. Settings persist in your browser.</p>' +
         '<div class="win95-settings-actions">' +
           '<button class="win95-skip" data-w95="reset">Reset</button>' +
@@ -222,10 +231,12 @@
     var qs = function (sel) { return panel.querySelector(sel); };
     var chromeEl = qs('[data-w95="chrome"]');
     var statusEl2 = qs('[data-w95="statusbar"]');
+    var bootEl = qs('[data-w95="bootsplash"]');
 
     panelLoad = function () {
       chromeEl.checked = readBool(KEY_CHROME, true);
       statusEl2.checked = readBool(KEY_STATUSBAR, true);
+      bootEl.checked = readBool(KEY_BOOTSPLASH, true);
     };
 
     marinara.on(chromeEl, "change", function () {
@@ -237,9 +248,20 @@
       refreshAllChrome();
       updateStatus();
     });
+    marinara.on(bootEl, "change", function () {
+      writeBool(KEY_BOOTSPLASH, bootEl.checked);
+    });
+    marinara.on(qs('[data-w95="splash-now"]'), "click", function () {
+      hidePanel();
+      // Slight delay so the panel is gone before the splash mounts
+      // (otherwise the panel's click-to-close swallows the splash's
+      // click-to-dismiss handler).
+      marinara.setTimeout(function () { showBootSplash({ force: true }); }, 50);
+    });
     marinara.on(qs('[data-w95="reset"]'), "click", function () {
       localStorage.removeItem(KEY_CHROME);
       localStorage.removeItem(KEY_STATUSBAR);
+      localStorage.removeItem(KEY_BOOTSPLASH);
       panelLoad();
       refreshAllChrome();
     });
@@ -510,6 +532,53 @@
     }
   }
 
+  // ── Boot splash ──────────────────────────────────────────────────
+  // Win95-style "Starting Marinara…" splash shown once per browser
+  // session (sessionStorage gated). Auto-dismisses after the
+  // progress-bar animation finishes (~2.6s) or on first click.
+  // Toggle in settings; pass `force: true` to bypass both gates
+  // (used by the settings panel "Show splash now" preview button).
+  function showBootSplash(opts) {
+    opts = opts || {};
+    if (!opts.force) {
+      if (!readBool(KEY_BOOTSPLASH, true)) return;
+      try {
+        if (sessionStorage.getItem(SESSION_BOOT_KEY)) return;
+        sessionStorage.setItem(SESSION_BOOT_KEY, "1");
+      } catch (e) { /* sessionStorage may throw in private mode — show splash anyway */ }
+    }
+
+    // Don't double-mount if already on screen.
+    if (document.querySelector(".win95-boot-splash")) return;
+
+    var splash = document.createElement("div");
+    splash.className = "win95-boot-splash win95-skip";
+    splash.setAttribute("data-win95-chrome", "boot-splash");
+    splash.setAttribute("aria-hidden", "true");
+    splash.innerHTML =
+      '<div class="win95-boot-content">' +
+        '<div class="win95-boot-flag"><div></div><div></div><div></div><div></div></div>' +
+        '<div class="win95-boot-title">Marinara Engine</div>' +
+        '<div class="win95-boot-tagline">LOCAL AI ROLEPLAY FRONTEND</div>' +
+        '<div class="win95-boot-status">Starting Marinara Engine&hellip;</div>' +
+        '<div class="win95-boot-bar"><div class="win95-boot-bar-fill"></div></div>' +
+        '<div class="win95-boot-hint">Click anywhere to continue</div>' +
+      '</div>';
+    document.body.appendChild(splash);
+
+    var dismissed = false;
+    function dismiss() {
+      if (dismissed) return;
+      dismissed = true;
+      try { splash.parentNode && splash.parentNode.removeChild(splash); } catch (e) {}
+    }
+    marinara.on(splash, "click", dismiss);
+    // 2.6s = a hair past the progress-bar animation so users see
+    // it complete before fade-out. Click anywhere skips early.
+    marinara.setTimeout(dismiss, 2600);
+    marinara.onCleanup(dismiss);
+  }
+
   // ── Boot ─────────────────────────────────────────────────────────
   marinara.on(window, "keydown", onKeydown);
   marinara.on(window, "hashchange", checkHash);
@@ -542,4 +611,5 @@
   swapIconsIn(document.body);
   stripSparkles();
   updateStatus();
+  showBootSplash();
 })();
