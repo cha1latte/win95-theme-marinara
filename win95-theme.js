@@ -500,9 +500,13 @@
     "alert-triangle":'<path fill-rule="evenodd" d="M8 2L14 13L2 13zM7 6h2v4H7zM7 11h2v1H7z"/>',
     "triangle-alert":'<path fill-rule="evenodd" d="M8 2L14 13L2 13zM7 6h2v4H7zM7 11h2v1H7z"/>',
     "info":          '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><rect x="7" y="4" width="2" height="2"/><rect x="7" y="7" width="2" height="6"/>',
-    "check":         '<polygon points="2,8 5,11 13,3 13,5 5,13 2,10"/>',
-    "check-circle":  '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><polygon points="4,8 6,10 11,5 11,7 6,12 4,10"/>',
-    "check-square":  '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><polygon points="4,8 6,10 11,5 11,7 6,12 4,10"/>',
+    // Check widened from 3 → 4 units thick so it stays readable
+    // even when the engine forces small `width="0.75rem"` (~12px)
+    // on theme-row indicators. Lower-edge: (1,7)→(5,11)→(12,4).
+    // Upper-edge (offset +4 vertically): (12,8)→(5,15)→(1,11).
+    "check":         '<polygon points="1,7 5,11 12,4 12,8 5,15 1,11"/>',
+    "check-circle":  '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><polygon points="3,7 6,10 11,5 11,8 6,13 3,10"/>',
+    "check-square":  '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><polygon points="3,7 6,10 11,5 11,8 6,13 3,10"/>',
     "square":        '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/>',
     "circle":        '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/>',
     "minimize":      '<rect x="3" y="11" width="10" height="2"/>',
@@ -551,6 +555,122 @@
     "scroll-text":   '<path fill-rule="evenodd" d="M2 3h12v10H2zM3 4v8h10V4z"/><rect x="5" y="6" width="6" height="1"/><rect x="5" y="8" width="6" height="1"/><rect x="5" y="10" width="4" height="1"/>',
     "list-checks":   '<polygon points="2,4 4,6 7,3 6,2 4,4 3,3"/><rect x="9" y="3" width="6" height="1"/><polygon points="2,9 4,11 7,8 6,7 4,9 3,8"/><rect x="9" y="8" width="6" height="1"/><rect x="9" y="13" width="6" height="1"/>',
     "shuffle":       '<polygon points="2,4 6,4 6,2 9,5 6,8 6,6 4,6 4,10 6,10 6,8 9,11 6,14 6,12 2,12"/><rect x="9" y="11" width="3" height="1"/><polygon points="11,8 14,11 11,14"/>',
+    // ─── Batch 4 (audit-driven): toolbar coverage ───
+    // Wrench (Function Calling) — handle + jaw silhouette.
+    "wrench":        '<polygon points="2,12 4,14 11,7 12,8 13,7 11,5 10,6 9,5 11,3 9,3 7,5 7,7 4,10 2,10"/>',
+    // Brain (Memory Recall family) — chunky lobed silhouette
+    // with a center crease. Pixel-art compromise on a real brain.
+    "brain":         '<path fill-rule="evenodd" d="M3 4h10v9H3zM4 5v7h8V5zM7 5v7h2V5z"/>',
+    "brain-circuit": '<path fill-rule="evenodd" d="M3 4h10v9H3zM4 5v7h8V5zM7 5v7h2V5z"/><rect x="2" y="7" width="2" height="2"/><rect x="12" y="7" width="2" height="2"/>',
+    // Volume / speaker — trapezoid horn + sound waves on the right.
+    "volume":        '<polygon points="2,6 5,6 9,3 9,13 5,10 2,10"/><rect x="11" y="6" width="1" height="4"/><rect x="13" y="4" width="1" height="8"/>',
+    "volume-1":      '<polygon points="2,6 5,6 9,3 9,13 5,10 2,10"/><rect x="11" y="6" width="1" height="4"/>',
+    "volume-2":      '<polygon points="2,6 5,6 9,3 9,13 5,10 2,10"/><rect x="11" y="6" width="1" height="4"/><rect x="13" y="4" width="1" height="8"/>',
+    "volume-x":      '<polygon points="2,6 5,6 9,3 9,13 5,10 2,10"/><polygon points="11,5 12,4 14,6 13,7 14,8 13,9 14,10 12,12 11,11 12,10 13,9 12,8 11,7 12,6"/>',
+    // No-hyphen Lucide aliases (newer naming convention).
+    "volume1":       '<polygon points="2,6 5,6 9,3 9,13 5,10 2,10"/><rect x="11" y="6" width="1" height="4"/>',
+    "volume2":       '<polygon points="2,6 5,6 9,3 9,13 5,10 2,10"/><rect x="11" y="6" width="1" height="4"/><rect x="13" y="4" width="1" height="8"/>',
+    "volumex":       '<polygon points="2,6 5,6 9,3 9,13 5,10 2,10"/><polygon points="11,5 12,4 14,6 13,7 14,8 13,9 14,10 12,12 11,11 12,10 13,9 12,8 11,7 12,6"/>',
+    "speaker":       '<polygon points="2,6 5,6 9,3 9,13 5,10 2,10"/><rect x="11" y="6" width="1" height="4"/><rect x="13" y="4" width="1" height="8"/>',
+    // Headphones — band over two ear cups.
+    "headphones":    '<path fill-rule="evenodd" d="M2 8h2v6H2zM12 8h2v6h-2z"/><polyline points="2,8 2,5 8,2 14,5 14,8" stroke="currentColor" stroke-width="1" fill="none" shape-rendering="crispEdges"/>',
+    // Mic — capsule + stand.
+    "mic":           '<rect x="6" y="2" width="4" height="7"/><polyline points="3,9 3,11 13,11 13,9" stroke="currentColor" stroke-width="1" fill="none"/><rect x="7" y="11" width="2" height="3"/>',
+    "mic-off":       '<rect x="6" y="2" width="4" height="7"/><rect x="7" y="11" width="2" height="3"/><polygon points="2,12 4,14 14,4 12,2"/>',
+    // Earth / globe alt (Translate uses Globe sometimes).
+    "earth":         '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v4h4V3zM9 3v4h4V3zM3 9v4h4V9zM9 9v4h4V9z"/>',
+    // Type / typography — a capital "T" inside a chunky frame.
+    "type":          '<rect x="3" y="3" width="10" height="2"/><rect x="7" y="3" width="2" height="11"/>',
+    // Film / video — strip with sprocket holes.
+    "film":          '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3zM4 4h2v2H4zM10 4h2v2h-2zM4 10h2v2H4zM10 10h2v2h-2z"/>',
+    // Hard drive / server — stacked rectangles.
+    "hard-drive":    '<path fill-rule="evenodd" d="M2 5h12v6H2zM3 6v4h10V6z"/><rect x="4" y="7" width="6" height="2"/><rect x="11" y="7" width="2" height="2"/>',
+    "server":        '<path fill-rule="evenodd" d="M2 3h12v4H2zM3 4v2h10V4zM2 9h12v4H2zM3 10v2h10v-2z"/><rect x="11" y="4" width="2" height="2"/><rect x="11" y="10" width="2" height="2"/>',
+    "database":      '<path fill-rule="evenodd" d="M2 3h12v3H2zM3 4v1h10V4zM2 6h12v3H2zM3 7v1h10V7zM2 9h12v3H2zM3 10v1h10v-1z"/>',
+    // Map / map-pin — for location-y icons.
+    "map":           '<path fill-rule="evenodd" d="M2 3h12v10H2zM3 4v8h10V4zM5 4v8M10 4v8" stroke="none"/><rect x="5" y="4" width="1" height="8"/><rect x="10" y="4" width="1" height="8"/>',
+    "map-pin":       '<polygon points="8,2 13,6 13,8 8,14 3,8 3,6"/><rect x="6" y="5" width="4" height="3"/>',
+    // Flame — chunky teardrop.
+    "flame":         '<polygon points="8,2 11,6 10,8 12,11 11,14 5,14 4,11 6,8 5,6"/>',
+    // Calendar / clock-calendar.
+    "calendar":      '<path fill-rule="evenodd" d="M2 4h12v10H2zM3 5v8h10V5z"/><rect x="2" y="2" width="2" height="3"/><rect x="12" y="2" width="2" height="3"/><rect x="4" y="7" width="2" height="2"/><rect x="7" y="7" width="2" height="2"/><rect x="10" y="7" width="2" height="2"/>',
+    "calendar-clock":'<path fill-rule="evenodd" d="M2 4h12v10H2zM3 5v8h10V5z"/><rect x="2" y="2" width="2" height="3"/><rect x="12" y="2" width="2" height="3"/>',
+    // Layers / stack icon.
+    "layers":        '<polygon points="8,2 14,6 8,10 2,6"/><polyline points="2,9 8,13 14,9" stroke="currentColor" stroke-width="1" fill="none"/>',
+    // Filter funnel.
+    "filter":        '<polygon points="2,3 14,3 10,8 10,13 6,13 6,8"/>',
+    // Sliders horizontal/vertical.
+    "sliders":       '<rect x="2" y="4" width="12" height="1"/><rect x="2" y="11" width="12" height="1"/><rect x="5" y="3" width="2" height="3"/><rect x="9" y="10" width="2" height="3"/>',
+    "sliders-horizontal":'<rect x="2" y="4" width="12" height="1"/><rect x="2" y="11" width="12" height="1"/><rect x="5" y="3" width="2" height="3"/><rect x="9" y="10" width="2" height="3"/>',
+    // Edit / pencil-square (composite).
+    "edit":          '<path fill-rule="evenodd" d="M2 4h7v10H2zM3 5v8h5V5z"/><polygon points="9,4 12,1 15,4 12,7 9,4"/>',
+    "edit-3":        '<polygon points="2,12 2,14 4,14 14,4 12,2"/>',
+    "trash-3":       '<rect x="3" y="3" width="10" height="2"/><rect x="6" y="1" width="4" height="2"/><path fill-rule="evenodd" d="M4 5h8v9H4zM6 7h1v5H6zM9 7h1v5H9z"/>',
+    // Mouse-pointer / cursor.
+    "mouse-pointer": '<polygon points="3,2 3,12 6,9 8,13 10,12 8,8 11,7"/>',
+    // Code-related.
+    "code":          '<polygon points="6,4 2,8 6,12 4,12 0,8 4,4"/><polygon points="10,4 14,8 10,12 12,12 16,8 12,4"/>',
+    "code-2":        '<polygon points="6,4 2,8 6,12 4,12 0,8 4,4"/><polygon points="10,4 14,8 10,12 12,12 16,8 12,4"/>',
+    "terminal":      '<path fill-rule="evenodd" d="M2 3h12v10H2zM3 4v8h10V4z"/><polyline points="4,7 6,9 4,11" stroke="currentColor" stroke-width="1" fill="none"/><rect x="7" y="11" width="4" height="1"/>',
+    // Tools-y collection.
+    "tool":          '<polygon points="2,12 4,14 11,7 12,8 13,7 11,5 10,6 9,5 11,3 9,3 7,5 7,7 4,10 2,10"/>',
+    "swords":        '<polygon points="2,12 4,14 11,7 9,5 2,12"/><polygon points="14,12 12,14 5,7 7,5 14,12"/>',
+    // ─── Batch 5 (audit-driven): Lucide naming variants ────────────
+    // Lucide changed conventions over versions — some icons render
+    // without the hyphen between word and digit (`trash2` not
+    // `trash-2`, `settings2` not `settings-2`), some got renamed
+    // entirely (`home`→`house`, `help-circle`→`circle-help`), and
+    // newer icons (`message-square`, `square-check-big`, `ellipsis`)
+    // weren't in earlier batches. Each alias here points at the
+    // same SVG body as its already-mapped counterpart (or adds a
+    // fresh design where one didn't exist yet).
+    "circle-help":   '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><rect x="6" y="4" width="4" height="1"/><rect x="9" y="5" width="1" height="2"/><rect x="7" y="7" width="2" height="2"/><rect x="7" y="11" width="2" height="1"/>',
+    "trash2":        '<rect x="3" y="3" width="10" height="2"/><rect x="6" y="1" width="4" height="2"/><path fill-rule="evenodd" d="M4 5h8v9H4zM6 7h1v5H6zM9 7h1v5H9z"/>',
+    "settings2":     '<path fill-rule="evenodd" d="M6 1h4v2H6zM6 13h4v2H6zM1 6h2v4H1zM13 6h2v4h-2zM3 3h10v10H3zM6 6h4v4H6z"/>',
+    "house":         '<path fill-rule="evenodd" d="M8 2L1 8h2v6h10V8h2zM7 10v4h2v-4z"/>',
+    "ellipsis":      '<rect x="2" y="7" width="2" height="2"/><rect x="7" y="7" width="2" height="2"/><rect x="12" y="7" width="2" height="2"/>',
+    "ellipsis-vertical":'<rect x="7" y="2" width="2" height="2"/><rect x="7" y="7" width="2" height="2"/><rect x="7" y="12" width="2" height="2"/>',
+    // Square message bubble (vs message-circle which is rounded).
+    "message-square":'<path fill-rule="evenodd" d="M2 2h12v9H2zM3 3v7h10V3z"/><polygon points="4,11 7,11 4,14"/>',
+    // Upload — arrow up out of a tray (mirror of download).
+    "upload":        '<rect x="7" y="6" width="2" height="6"/><polygon points="4,7 12,7 8,2"/><rect x="2" y="13" width="12" height="2"/>',
+    // Letter / text — a sheet with horizontal text lines.
+    "letter-text":   '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><rect x="5" y="5" width="6" height="1"/><rect x="5" y="7" width="6" height="1"/><rect x="5" y="9" width="6" height="1"/><rect x="5" y="11" width="4" height="1"/>',
+    // File + plus / folder + plus — file-text/folder with a small
+    // plus marker bottom-right.
+    "file-plus":     '<path fill-rule="evenodd" d="M3 2h10v12H3zM4 3v10h8V3z"/><rect x="7" y="6" width="2" height="6"/><rect x="5" y="8" width="6" height="2"/>',
+    "file-plus-2":   '<path fill-rule="evenodd" d="M3 2h10v12H3zM4 3v10h8V3z"/><rect x="7" y="6" width="2" height="6"/><rect x="5" y="8" width="6" height="2"/>',
+    "file-plus2":    '<path fill-rule="evenodd" d="M3 2h10v12H3zM4 3v10h8V3z"/><rect x="7" y="6" width="2" height="6"/><rect x="5" y="8" width="6" height="2"/>',
+    "folder-plus":   '<path fill-rule="evenodd" d="M2 4h5v2H2zM2 5h12v9H2zM3 7v6h10V7z"/><rect x="7" y="8" width="2" height="4"/><rect x="5" y="9" width="6" height="2"/>',
+    // Big square-check (newer Lucide name, same as our check-square).
+    "square-check":  '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><polygon points="4,8 6,10 11,5 11,7 6,12 4,10"/>',
+    "square-check-big":'<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><polygon points="4,8 6,10 11,5 11,7 6,12 4,10"/>',
+    // Vertical sliders (rotated horizontal sliders).
+    "sliders-vertical":'<rect x="4" y="2" width="1" height="12"/><rect x="11" y="2" width="1" height="12"/><rect x="3" y="5" width="3" height="2"/><rect x="10" y="9" width="3" height="2"/>',
+    // Pencil ruler / edit alt.
+    "pencil-ruler":  '<polygon points="2,12 2,14 4,14 14,4 12,2"/>',
+    // Newer Lucide alt names for already-mapped icons.
+    "x-mark":        '<polygon points="3,4 4,3 8,7 12,3 13,4 9,8 13,12 12,13 8,9 4,13 3,12 7,8"/>',
+    "circle-x":      '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><polygon points="4,5 5,4 8,7 11,4 12,5 9,8 12,11 11,12 8,9 5,12 4,11 7,8"/>',
+    "circle-check":  '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><polygon points="4,8 6,10 11,5 11,7 6,12 4,10"/>',
+    "circle-alert":  '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><rect x="7" y="5" width="2" height="5"/><rect x="7" y="11" width="2" height="2"/>',
+    "octagon-alert": '<polygon points="5,2 11,2 14,5 14,11 11,14 5,14 2,11 2,5"/>',
+    // Layout / panel variants.
+    "layout":        '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><rect x="3" y="3" width="3" height="10"/><rect x="3" y="3" width="10" height="3"/>',
+    // Power-on / power-off variants.
+    "power-off":     '<rect x="7" y="2" width="2" height="5"/><path fill-rule="evenodd" d="M3 5h10v9H3zM4 6v7h8V6z"/><polygon points="2,12 4,14 14,4 12,2"/>',
+    // ─── Batch 6 (final-mile audit): flag, code-xml, palette ───
+    // Flag — pole on left + filled rectangular banner waving right.
+    // Common in message-action toolbars (flag-as-favorite / report).
+    "flag":          '<rect x="3" y="2" width="1" height="12"/><rect x="4" y="3" width="9" height="5"/>',
+    // Code-XML — angle brackets `< >` plus a forward slash through
+    // the middle (the `</>` glyph used in preset format labels).
+    "code-xml":      '<polygon points="5,3 1,8 5,13 6,12 3,8 6,4"/><polygon points="11,3 15,8 11,13 10,12 13,8 10,4"/><polygon points="9,2 11,2 7,14 5,14"/>',
+    // Palette — wide rectangular body (palette held horizontally)
+    // with a rectangular thumb-hole cutout on the right edge, and
+    // a row of 4 paint blobs along the top. Less curvy than a real
+    // palette but reads as "thing with paint on it".
+    "palette":       '<path fill-rule="evenodd" d="M1 4h14v8H1zM11 8h3v4h-3z"/><rect x="3" y="2" width="2" height="2"/><rect x="6" y="2" width="2" height="2"/><rect x="9" y="2" width="2" height="2"/><rect x="12" y="2" width="2" height="2"/>',
   };
 
   var ICON_MARK_ATTR = "data-win95-icon";
