@@ -1,17 +1,19 @@
 # Win95 Theme
 
-A client-side extension for [Marinara Engine](https://github.com/Pasta-Devs/Marinara-Engine) that re-skins the app as authentic Windows 95 — `#c0c0c0` gray fields, the classic blue title-bar gradient, MS Sans Serif everywhere, beveled buttons, inset inputs, chunky 16 px scrollbars, and a `#000080` selection highlight.
+A client-side **CSS-only** extension for [Marinara Engine](https://github.com/Pasta-Devs/Marinara-Engine) that re-skins the app as authentic Windows 95 — `#c0c0c0` gray fields, the classic blue title-bar gradient, the W95FA pixel font everywhere, beveled buttons, inset inputs, chunky 16 px scrollbars, and a `#000080` selection highlight.
 
 It's a theme, not a window manager. Marinara's layout, navigation, and iconography are left alone.
 
+> **v3.0** dropped the JavaScript layer (window chrome, pixel-art icon swap, boot splash, system sounds, working titlebar buttons, settings panel) in favor of a leaner pure-CSS theme that's simpler to maintain and less likely to break with engine updates. Earlier feature-rich releases are preserved in git history if anyone wants to fork the JS layer.
+
 ## Screenshots
 
-> _Placeholder — drop screenshots here once installed._
+> _Placeholder — drop screenshots here._
 >
-> - `docs/conversation.png` — Conversation surface with titlebar + status bar
-> - `docs/sidebar.png` — Left chat list with titlebar
+> - `docs/conversation.png` — Conversation surface
+> - `docs/sidebar.png` — Left chat list
 > - `docs/modal.png` — A modal dialog with the Win95 frame
-> - `docs/settings.png` — The Win95 Theme settings panel
+> - `docs/settings.png` — Settings panel restyled
 
 ## Installation
 
@@ -25,58 +27,51 @@ The skin takes effect immediately — no reload required.
 ## What it themes
 
 - **Palette.** Overrides the engine's semantic CSS variables (`--background`, `--foreground`, `--card`, `--primary`, `--border`, etc.) at `:root`, so every component picks up the Win95 colors without selector wars. Both `[data-theme="dark"]` and `[data-theme="light"]` resolve to the same Win95 palette — toggling theme mode is a no-op while the extension is enabled.
-- **Typography.** Re-points `--font-y2k` to `'MS Sans Serif', 'Pixelated MS Sans Serif', 'Microsoft Sans Serif', Tahoma, Geneva, sans-serif`. Body size is `0.75rem` (≈ 12 px) to stay close to the canonical 11 px without breaking flow on hi-DPI screens.
-- **Buttons.** Raised bevel by default, pressed bevel on `:active`, dotted focus rectangle inside on `:focus-visible`. Disabled buttons get the etched gray text with the white shadow.
-- **Form controls.** Inputs, textareas, and selects use the inset bevel. Checkboxes and radios are restyled to 13 × 13 px with the canonical checkmark / dot.
-- **Scrollbars.** 16 px chunky webkit scrollbars with a patterned track, beveled thumb, and arrow buttons at each end (SVG triangles, no images bundled). Firefox falls back to its native scrollbars styled via `scrollbar-color`.
-- **Selection highlight.** Classic `#000080` blue with white text everywhere `::selection` applies.
-- **Window chrome.** A decorative Win95 titlebar is prepended to the chat surface (Conversation + Roleplay), the left chat list, and the right tools panel. The chat surface also gets a status bar at the bottom.
-- **Status bar.** Shows `Ready` when idle and `Generating…` while a response is streaming, plus a fixed `Marinara Engine` label on the right. State is observed off the send / stop button — see "Streaming detection" below.
-- **Modals.** The engine's modal dialogs (`[data-component="Modal"]`) get the bevel + a decorative blue title strip across the top.
+- **Typography.** W95FA pixel font is base64-inlined in the bundle. `--font-y2k` leads with `'W95FA', 'Pixelated MS Sans Serif', 'MS Sans Serif', 'Microsoft Sans Serif', Tahoma, Geneva, sans-serif`. Body size sits at `0.75rem` (≈ 12 px) so the bitmap font renders close to its native ~11 px sweet spot.
+- **Buttons.** Raised bevel by default, pressed bevel on `:active`, dotted focus rectangle inside on `:focus-visible`. Disabled buttons get the etched gray text with the white shadow. Action buttons that the engine paints with `bg-[var(--primary)]` are flattened back to grey raised; segmented-toggle selected pills (`bg-[var(--primary)]/X` opacity variants) get the canonical Win95 pressed-in bevel.
+- **Form controls.** Inputs, textareas, and selects use the inset bevel. `<select>` elements get a custom 16-px chunky 3D arrow button on the right via inline-SVG background. Checkboxes and radios are restyled to 13 × 13 px with the canonical checkmark / dot.
+- **Scrollbars.** 16 px chunky webkit scrollbars with a patterned track, beveled thumb, and arrow buttons at each end (SVG triangles, no images bundled). The engine's `* { scrollbar-color }` rule is overridden via `@supports not (-moz-appearance: none)` so Chrome/Edge fall back to pseudo-element rendering. Firefox keeps `scrollbar-color` for its native styling.
+- **Selection highlight.** Classic `#000080` blue with white text everywhere `::selection` applies. Sidebar/character-list selected rows use the same flat navy + white text.
+- **Slider trackbar.** `<input type="range">` thumbs render as an inline-SVG pentagon — rectangular top + downward-pointing notch with a single-pixel light bevel on top/left and dark bevel on right + right diagonal. Authentic Win95 trackbar thumb.
+- **Modals.** Modal native headers (`<h2>{title}</h2>` + close `<X>`) are restyled in-place as Win95 blue gradient titlebars with white title text and an inset Win95 close button.
+- **Tooltips.** Cream-yellow `#ffffe0` background, 1-px black border, 1-px hard-offset shadow (no soft halo), W95FA font, sharp corners — the canonical Win95 tooltip look.
+- **Universal flatten.** Every Tailwind `rounded-{sm,md,lg,xl,2xl,3xl,full}` → `border-radius: 0`; `bg-gradient-to-*` → flat face; `text-foreground/X` muted opacities → full-opacity black; named-color text utilities (`text-pink-X`, `text-amber-X`, etc.) → win95-text; `shadow-*` → none. All with chat-content carve-outs so message styling stays.
+- **Hyperlinks.** Anchors inside chrome surfaces re-snap to the canonical IE3-era treatment: `#0000ee` blue underlined, `#551a8b` after visit.
 
 ## What it does NOT theme
 
-- **Real window management.** The titlebar buttons (`_`, `□`, `×`) are decorative — they don't drag, minimize, maximize, or close anything. Clicks are swallowed.
+- **Real window management.** No min/max/× titlebar buttons (those required JS to be functional, dropped in v3.0).
+- **Pixel-art icons.** Lucide line icons stay as-is. Earlier versions shipped a 160+ icon SVG-replacement layer — see git history if you want to fork it back in.
 - **A fake Start menu or taskbar.** Out of scope; would conflict with Marinara's real navigation.
-- **Engine icons.** The engine's iconography (Lucide icons in messages, panels, the send button, etc.) is left alone.
-- **Sounds.** No `chime.wav` is bundled. The original prompt offered system sounds as an optional toggle, but the extension would either need to bundle audio (size cost, plus the install path is "paste a JSON") or fetch them at runtime (forbidden — extensions must stay network-silent). Off the table for now.
-
-## Settings
-
-Open the settings panel any of three ways:
-
-- **Desktop:** press **Ctrl+Shift+9**.
-- **Mobile or anywhere without a keyboard:** add `#win95` to the URL and press Go. The hash is cleaned up automatically once the panel opens.
-- Either way, press **Esc** or click **OK** / **×** to dismiss.
-
-From the panel you can:
-
-- Toggle **window chrome** (the decorative titlebars).
-- Toggle the **chat status bar**.
-- Click **Reset** to restore defaults.
-
-There's no in-panel "disable the whole extension" toggle on purpose — use **Settings → Extensions** in Marinara to flip the extension off, which removes the styles and the chrome elements in one step.
-
-All settings persist in `localStorage` and survive reloads.
+- **Window chrome / status bar / boot splash / sounds.** All JS-dependent features removed in v3.0.
+- **Sparkle removal.** `✧ Marinara Engine ✧` decoration around the home wordmark stays.
+- **Native color picker.** `<input type="color">` field is wrapped in a Win95 sunken bevel, but the picker dialog opens in the browser's native UI — replacing it would need a real picker implementation in JS.
 
 ## How it works
 
-- **CSS does most of the work.** The engine's semantic tokens are re-pointed at the Win95 palette at `:root`, which paints every component automatically. Buttons, inputs, scrollbars, modals, and selection are styled directly — no JS required.
-- **JS adds the elements CSS can't conjure.** Titlebars and the status bar are real DOM elements prepended / appended to the surface as siblings of React's content (never moving or removing React-managed nodes). They're positioned `absolute` inside a `position: relative` parent, so adding them doesn't disturb the inner flex layout.
-- **Streaming detection.** Marinara's streaming flag lives in a Zustand store, not the DOM. The fallback is to observe the chat send button (`.mari-chat-send-btn`) for icon swaps — when streaming starts, Lucide replaces `lucide-send` with `lucide-stop-circle`, which the JS reads. If Lucide ever renames its classes, the status text silently degrades to a permanent `Ready` instead of throwing.
-- **No body-wide observation.** A single 1 Hz `setInterval` reconciles which surfaces are mounted and (re-)attaches the send-button observer. This avoids the `MutationObserver(document.body, {subtree: true})` foot-gun that would tick on every streaming token.
+- **CSS-only.** The engine's semantic tokens are re-pointed at the Win95 palette at `:root`, which paints every component automatically. Buttons, inputs, scrollbars, modals, sliders, comboboxes, tooltips, and selection are all styled via direct selectors + a layer of `[class*="..."]` Tailwind-utility flatten. No JavaScript runs.
+- **W95FA bundled inline.** The font is base64-encoded into the `@font-face` `src` URL by `build.js` at bundle time. ~10 KB of base64 inside the JSON. If `w95fa.woff2` is missing from the repo root the placeholder stays as-is, the URL silently 404s, and the fallback font chain takes over.
+- **Build script.** `node build.js` reads `win95-theme.css` + the WOFF2, normalizes line endings, and writes `win95-theme.json` (the pasteable extension blob).
 
 ## Known issues / limitations
 
-- **DOM-dependent.** The extension targets stable selectors in Marinara Engine — `[data-component="ChatArea.Conversation"]`, `[data-component="ChatArea.Roleplay"]`, `[data-component="ChatSidebar"]`, `[data-component="RightPanel"]`, `[data-component="Modal"]`, `.mari-chat-send-btn`. If a future engine version renames or restructures these, the affected piece silently no-ops.
-- **`!important` on `border-radius`.** Tailwind utility classes (`rounded-md`, `rounded-xl`, etc.) are baked into a lot of engine markup. The only practical defeat without per-component overrides is `border-radius: 0 !important` on buttons / inputs and the modal frame. Documented inline in `win95-theme.css`.
-- **Modal backdrop.** `[data-component="Modal"]` ships with an inline-style backdrop blur. We override `background` with `!important` to make sure the Win95 face color wins.
-- **Lucide-only streaming detection.** As above — the status bar reads off the send button's icon class. Native engine event would be cleaner if one is ever added.
-- **Webkit-only scrollbar buttons.** Firefox keeps native scrollbars (styled via `scrollbar-color`). Webkit's `::-webkit-scrollbar-button:double-button` variants aren't reliable across versions, so we ship single arrows on each end.
-- **Titlebar buttons are decorative.** Clicking `×` doesn't close anything; clicking `□` doesn't maximize. They're props.
+- **DOM-dependent class selectors.** Many flatten rules target Tailwind utility-class substrings (`[class*="rounded-2xl"]`, `[class*="bg-gradient-to"]`, `[class*="text-pink-"]` etc). If the engine's Tailwind config changes the class generation pattern, those rules silently no-op.
+- **`!important` everywhere.** Tailwind utilities are class-level (specificity `0,1,0`) and frequently bake right into engine JSX, so we use `!important` liberally to win the cascade. Documented inline in `win95-theme.css`.
+- **Webkit-only scrollbar pseudo styling.** Firefox doesn't support `::-webkit-scrollbar-*`; we set `scrollbar-color` in an `@supports (-moz-appearance: none)` block so Firefox at least gets Win95 colors on its native scrollbar. Chrome/Edge get the full chunky bevel via pseudo-elements.
+- **Modal backdrop.** Engine ships `[data-component="Modal"]` with an inline-style backdrop blur; overridden with `!important` to keep the Win95 face color visible.
 
 ## Compatibility
 
 - Built against **Marinara Engine v1.5.5+**.
 - Browser-sandboxed; runs in any browser Marinara supports.
-- No Node, no filesystem, no external dependencies, no network calls, no schema changes.
+- No Node at runtime, no JavaScript execution, no filesystem access, no external dependencies, no network calls, no schema changes. Pure CSS injected into a `<style>` tag.
+
+## Build
+
+If you fork this and want to rebuild:
+
+```
+node build.js
+```
+
+Reads `win95-theme.css` (+ `w95fa.woff2` if present) and writes `win95-theme.json`. CRLF normalized for byte-stable Windows commits.
