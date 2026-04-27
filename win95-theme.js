@@ -24,6 +24,76 @@
   var KEY_BOOTSPLASH = "marinara-win95-bootsplash";
   var SESSION_BOOT_KEY = "win95-boot-shown";
 
+  // Titlebar-button state machine — `_` minimize, `□` maximize,
+  // `×` close. State stored per-surface under STATE_KEY_PREFIX + key.
+  var STATE_KEY_PREFIX = "marinara-win95-state-";
+  // Surface key used in localStorage. Resolved from the surface's
+  // data-component attribute. Sidebar gets "sidebar" since
+  // [data-component="ChatSidebar"] won't have a matching CHAT_SURFACES
+  // / PANEL_SURFACES key in this map by default.
+  function getSurfaceKey(el) {
+    if (!el) return null;
+    var dc = el.getAttribute("data-component") || "";
+    if (dc === "ChatArea.Conversation") return "chat-conversation";
+    if (dc === "ChatArea.Roleplay")     return "chat-roleplay";
+    if (dc === "ChatSidebar")           return "sidebar";
+    return null;
+  }
+  function getStoredState(key) {
+    return localStorage.getItem(STATE_KEY_PREFIX + key) || "normal";
+  }
+  function storeState(key, state) {
+    if (!state || state === "normal") localStorage.removeItem(STATE_KEY_PREFIX + key);
+    else localStorage.setItem(STATE_KEY_PREFIX + key, state);
+  }
+  // Apply a state to a surface: clear all win95-state-* classes,
+  // add the one for the target state (if not "normal"), and toggle
+  // body.win95-chat-max so the sidebar/right-panel hide CSS fires
+  // when any chat surface is maximized.
+  function applyTitlebarState(surface, state) {
+    if (!surface) return;
+    surface.classList.remove("win95-state-min", "win95-state-max", "win95-state-closed");
+    if (state && state !== "normal") {
+      surface.classList.add("win95-state-" + state);
+    }
+    var anyMax = !!document.querySelector(
+      '[data-component="ChatArea.Conversation"].win95-state-max,' +
+      '[data-component="ChatArea.Roleplay"].win95-state-max'
+    );
+    document.body.classList.toggle("win95-chat-max", anyMax);
+  }
+  function handleTitlebarClick(action, surface) {
+    var key = getSurfaceKey(surface);
+    if (!key) return;
+    // Sidebar's `□` is a no-op — sidebar is fixed-width and
+    // "maximizing" it would conflict with the AppShell layout.
+    if (action === "max" && key === "sidebar") return;
+    var current = getStoredState(key);
+    var target = "normal";
+    if (action === "min")   target = (current === "min"    ? "normal" : "min");
+    if (action === "max")   target = (current === "max"    ? "normal" : "max");
+    if (action === "close") target = (current === "closed" ? "normal" : "closed");
+    storeState(key, target);
+    applyTitlebarState(surface, target);
+  }
+  // Restore persisted state for a freshly-mounted surface (called
+  // from ensureChrome after the titlebar is attached).
+  function restoreTitlebarState(surface) {
+    var key = getSurfaceKey(surface);
+    if (!key) return;
+    var saved = getStoredState(key);
+    if (saved !== "normal") applyTitlebarState(surface, saved);
+  }
+  function restoreAllWindows() {
+    ["chat-conversation", "chat-roleplay", "sidebar"].forEach(function (k) {
+      storeState(k, "normal");
+    });
+    document.querySelectorAll(".win95-state-min, .win95-state-max, .win95-state-closed").forEach(function (el) {
+      el.classList.remove("win95-state-min", "win95-state-max", "win95-state-closed");
+    });
+    document.body.classList.remove("win95-chat-max");
+  }
+
   function readBool(key, def) {
     var v = localStorage.getItem(key);
     return v === null ? def : v === "true";
@@ -64,9 +134,19 @@
         '<button class="win95-titlebar-btn win95-skip" data-act="close" aria-label="Close">' + TITLEBAR_GLYPH_CLOSE + '</button>' +
       '</div>';
     bar.querySelector(".win95-titlebar-title").textContent = title;
-    // Buttons are decorative — clicks do nothing destructive.
+    // Wire the three titlebar buttons to the min/max/close state
+    // machine. Each click toggles the surface's state in localStorage
+    // and re-applies the matching CSS class. Clicks are still
+    // preventDefault'd to avoid any default browser behavior on the
+    // <button> element (e.g. focus shift).
     bar.querySelectorAll(".win95-titlebar-btn").forEach(function (btn) {
-      marinara.on(btn, "click", function (e) { e.preventDefault(); e.stopPropagation(); });
+      marinara.on(btn, "click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var action = btn.getAttribute("data-act");
+        var surface = btn.closest("[data-component]");
+        if (action && surface) handleTitlebarClick(action, surface);
+      });
     });
     return bar;
   }
@@ -86,6 +166,10 @@
       surface.insertBefore(bar, surface.firstChild);
       // Ensure cleanup removes the node when the extension unloads.
       marinara.onCleanup(function () { try { bar.remove(); } catch (e) {} });
+      // Restore any persisted min/max/closed state for this
+      // surface. Idempotent — if the state is "normal" or unsaved
+      // this is a no-op.
+      restoreTitlebarState(surface);
     }
 
     if (withStatusbar && !surface.querySelector(':scope > [data-win95-chrome="statusbar"]')) {
@@ -221,7 +305,10 @@
         '<div class="win95-settings-row">' +
           '<button class="win95-skip" data-w95="splash-now" style="margin-left: 22px; padding: 2px 10px;">Show splash now</button>' +
         '</div>' +
-        '<p class="win95-settings-help">Press <b>Ctrl+Shift+9</b> or visit <b>#win95</b> to reopen this panel. Settings persist in your browser.</p>' +
+        '<div class="win95-settings-row">' +
+          '<button class="win95-skip" data-w95="restore-all" style="margin-left: 22px; padding: 2px 10px;">Restore all windows</button>' +
+        '</div>' +
+        '<p class="win95-settings-help">Press <b>Ctrl+Shift+9</b> or visit <b>#win95</b> to reopen this panel. Settings persist in your browser. Titlebar buttons (<b>_ □ ×</b>) toggle each surface\'s minimize / maximize / close state.</p>' +
         '<div class="win95-settings-actions">' +
           '<button class="win95-skip" data-w95="reset">Reset</button>' +
           '<button class="win95-skip" data-w95="ok">OK</button>' +
@@ -258,10 +345,14 @@
       // click-to-dismiss handler).
       marinara.setTimeout(function () { showBootSplash({ force: true }); }, 50);
     });
+    marinara.on(qs('[data-w95="restore-all"]'), "click", function () {
+      restoreAllWindows();
+    });
     marinara.on(qs('[data-w95="reset"]'), "click", function () {
       localStorage.removeItem(KEY_CHROME);
       localStorage.removeItem(KEY_STATUSBAR);
       localStorage.removeItem(KEY_BOOTSPLASH);
+      restoreAllWindows();
       panelLoad();
       refreshAllChrome();
     });
