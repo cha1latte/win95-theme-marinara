@@ -458,7 +458,17 @@
     "circle-user":   '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3zM6 5h4v3H6zM4 10h8v3H4z"/>',
     "paperclip":     '<path fill-rule="evenodd" d="M5 2h6v11H5zM7 4v7h2V4z"/><rect x="6" y="13" width="4" height="1"/>',
     "link":          '<path fill-rule="evenodd" d="M2 5h5v6H2zM3 6v4h3V6zM9 5h5v6H9zM10 6v4h3V6z"/><rect x="6" y="7" width="4" height="2"/>',
-    "help-circle":   '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><rect x="6" y="4" width="4" height="1"/><rect x="9" y="5" width="1" height="2"/><rect x="7" y="7" width="2" height="2"/><rect x="7" y="11" width="2" height="1"/>',
+    // Help-circle redesigned: previous 1-px-wide rects were too
+    // thin and rendered as an empty box at small sizes. Beefed
+    // each segment to 2-3 px so the question mark is unmistakable.
+    // Help glyph — JUST the question mark, no surrounding frame.
+    // Earlier framed design rendered as a solid black blob at the
+    // engine's small `size="1rem"` (~16 px) display sizes because
+    // the 1-px hollow ring + 2-px inner shapes visually clustered.
+    // Most contexts where the engine renders HelpCircle already
+    // wrap it in a border (FAQ row container, etc), so framing
+    // ours too was redundant. Bold standalone ? reads instantly.
+    "help-circle":   '<rect x="5" y="2" width="6" height="2"/><rect x="10" y="4" width="2" height="3"/><rect x="6" y="6" width="2" height="2"/><rect x="7" y="7" width="2" height="3"/><rect x="7" y="13" width="2" height="2"/>',
     "panel-left":    '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><rect x="3" y="3" width="3" height="10"/>',
     "panel-right":   '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><rect x="10" y="3" width="3" height="10"/>',
     "image":         '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><rect x="5" y="5" width="2" height="2"/><polygon points="3,12 6,8 9,11 11,9 13,12 13,13 3,13"/>',
@@ -624,7 +634,10 @@
     // weren't in earlier batches. Each alias here points at the
     // same SVG body as its already-mapped counterpart (or adds a
     // fresh design where one didn't exist yet).
-    "circle-help":   '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><rect x="6" y="4" width="4" height="1"/><rect x="9" y="5" width="1" height="2"/><rect x="7" y="7" width="2" height="2"/><rect x="7" y="11" width="2" height="1"/>',
+    // Same frameless `?` as help-circle (engine renames between
+    // Lucide versions; both aliases point at the same standalone
+    // glyph for clean rendering at any display size).
+    "circle-help":   '<rect x="5" y="2" width="6" height="2"/><rect x="10" y="4" width="2" height="3"/><rect x="6" y="6" width="2" height="2"/><rect x="7" y="7" width="2" height="3"/><rect x="7" y="13" width="2" height="2"/>',
     "trash2":        '<rect x="3" y="3" width="10" height="2"/><rect x="6" y="1" width="4" height="2"/><path fill-rule="evenodd" d="M4 5h8v9H4zM6 7h1v5H6zM9 7h1v5H9z"/>',
     "settings2":     '<path fill-rule="evenodd" d="M6 1h4v2H6zM6 13h4v2H6zM1 6h2v4H1zM13 6h2v4h-2zM3 3h10v10H3zM6 6h4v4H6z"/>',
     "house":         '<path fill-rule="evenodd" d="M8 2L1 8h2v6h10V8h2zM7 10v4h2v-4z"/>',
@@ -740,6 +753,25 @@
         marinara.observe(el, handleIconMutations, { childList: true, subtree: true });
       }
     });
+  }
+
+  // ── Logo GIF → PNG swap ──────────────────────────────────────────
+  // Engine swaps /logo.png ↔ /logo-splash.gif based on a
+  // showEmptyStateEffects flag in React state. The animated GIF
+  // gives the home logo its "bouncing/pulsing" feel even after
+  // we kill the wrapper's bunny-glow + animate-pulse-ring CSS
+  // (because the GIF itself is animated frame-by-frame, and CSS
+  // can't pause GIF playback). Replacing src .gif → .png on
+  // every render gives us the static frame, which then picks up
+  // the image-rendering: pixelated filter from our CSS.
+  function replaceLogoGifs(root) {
+    if (!root || !root.querySelectorAll) return;
+    var imgs = root.querySelectorAll('img[src*="logo-splash.gif"]');
+    for (var i = 0; i < imgs.length; i++) {
+      var img = imgs[i];
+      var newSrc = img.src.replace("logo-splash.gif", "logo.png");
+      if (img.src !== newSrc) img.src = newSrc;
+    }
   }
 
   // ── Sparkle stripper ─────────────────────────────────────────────
@@ -1035,16 +1067,31 @@
     // narrowed to unmarked Lucide SVGs only so it's cheap.
     swapIconsIn(document.body);
     stripSparkles();
+    replaceLogoGifs(document.body);
     // Cheap scan for unrung error toasts. The marker attribute
     // prevents double-firing on toasts we've already seen.
     checkForErrorToast(document.body);
   }, POLL_MS);
+
+  // Clear the per-svg `data-win95-icon` marker on every Lucide
+  // SVG before the first sweep. Without this, icons already
+  // swapped by a PRIOR extension version (with older geometry)
+  // would skip our re-swap because swapIcon() short-circuits on
+  // an existing marker. Re-importing the extension would then
+  // ship the new CSS but leave old icon SVG bodies in place —
+  // which is exactly the "I re-imported but icons didn't update"
+  // bug we hit. Clearing the markers here forces every Lucide
+  // SVG to swap fresh against the current WIN95_ICONS map.
+  document.querySelectorAll('svg[' + ICON_MARK_ATTR + ']').forEach(function (s) {
+    s.removeAttribute(ICON_MARK_ATTR);
+  });
 
   refreshAllChrome();
   attachSendObserver();
   attachIconObservers();
   swapIconsIn(document.body);
   stripSparkles();
+  replaceLogoGifs(document.body);
   updateStatus();
   suppressEngineNotification();
   showBootSplash();
