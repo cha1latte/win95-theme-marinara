@@ -322,6 +322,27 @@
     // covers wildcards / glob patterns where it appears).
     "regex":         '<rect x="7" y="2" width="2" height="12"/><polygon points="3,4 4,3 13,12 12,13"/><polygon points="12,3 13,4 4,13 3,12"/>',
     "asterisk":      '<rect x="7" y="2" width="2" height="12"/><polygon points="3,4 4,3 13,12 12,13"/><polygon points="12,3 13,4 4,13 3,12"/>',
+    // Toolbar / message-action icons.
+    "heart":         '<polygon points="3,3 6,3 8,5 10,3 13,3 14,5 14,7 8,13 2,7 2,5"/>',
+    "message-circle":'<path fill-rule="evenodd" d="M2 2h12v9H2zM3 3v7h10V3z"/><polygon points="4,11 7,11 4,14"/><rect x="5" y="6" width="2" height="1"/><rect x="9" y="6" width="2" height="1"/>',
+    "copy":          '<path fill-rule="evenodd" d="M2 4h9v10H2zM3 5v8h7V5zM6 2h8v10H6zM7 3v8h6V3z"/>',
+    "refresh-cw":    '<path fill-rule="evenodd" d="M3 4h8v8H3zM4 5v6h6V5z"/><rect x="11" y="3" width="2" height="1"/><polygon points="11,2 14,4 11,6"/>',
+    "rotate-ccw":    '<path fill-rule="evenodd" d="M5 4h8v8H5zM6 5v6h6V5z"/><rect x="3" y="3" width="2" height="1"/><polygon points="5,2 2,4 5,6"/>',
+    "git-branch":    '<rect x="4" y="3" width="2" height="10"/><rect x="10" y="6" width="2" height="7"/><rect x="6" y="6" width="4" height="2"/><rect x="3" y="2" width="4" height="3"/><rect x="3" y="11" width="4" height="3"/><rect x="9" y="3" width="4" height="3"/>',
+    "languages":     '<polygon points="3,12 5,4 7,12 6,9 4,9"/><rect x="6" y="7" width="6" height="2"/><polygon points="11,5 14,8 11,11"/>',
+    "trash-icon":    '<rect x="3" y="3" width="10" height="2"/><rect x="6" y="1" width="4" height="2"/><path fill-rule="evenodd" d="M4 5h8v9H4zM6 7h1v5H6zM9 7h1v5H9z"/>',
+    "alert-circle":  '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><rect x="7" y="5" width="2" height="5"/><rect x="7" y="11" width="2" height="2"/>',
+    "alert-triangle":'<path fill-rule="evenodd" d="M8 2L14 13L2 13zM7 6h2v4H7zM7 11h2v1H7z"/>',
+    "triangle-alert":'<path fill-rule="evenodd" d="M8 2L14 13L2 13zM7 6h2v4H7zM7 11h2v1H7z"/>',
+    "info":          '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><rect x="7" y="4" width="2" height="2"/><rect x="7" y="7" width="2" height="6"/>',
+    "check":         '<polygon points="2,8 5,11 13,3 13,5 5,13 2,10"/>',
+    "check-circle":  '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><polygon points="4,8 6,10 11,5 11,7 6,12 4,10"/>',
+    "check-square":  '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><polygon points="4,8 6,10 11,5 11,7 6,12 4,10"/>',
+    "square":        '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/>',
+    "circle":        '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/>',
+    "minimize":      '<rect x="3" y="11" width="10" height="2"/>',
+    "minimize-2":    '<polygon points="9,7 13,3 13,5 11,7 13,9 13,11 9,11"/><polygon points="7,9 3,13 3,11 5,9 3,7 3,5 7,5"/>',
+    "external-link": '<path fill-rule="evenodd" d="M2 4h8v10H2zM3 5v8h6V5z"/><rect x="9" y="2" width="5" height="1"/><rect x="13" y="2" width="1" height="5"/><polygon points="13,2 8,7 9,8 14,3"/>',
     "moon":          '<path d="M5 2h4v1H5zm-2 1h2v1H3zm-1 1h1v6H2zm1 6h1v2H3zm1 2h2v1H4zm2 1h6v1H6zm0-2h7v1H6zM5 9h7v1H5zM5 7h6v1H5zM5 5h6v1H5zM6 3h5v1H6z"/>',
     "loader":        '<rect x="7" y="2" width="2" height="3"/><rect x="7" y="11" width="2" height="3"/><rect x="2" y="7" width="3" height="2"/><rect x="11" y="7" width="3" height="2"/>',
     "loader-2":      '<rect x="7" y="2" width="2" height="3"/><rect x="7" y="11" width="2" height="3"/><rect x="2" y="7" width="3" height="2"/><rect x="11" y="7" width="3" height="2"/>',
@@ -396,6 +417,38 @@
     });
   }
 
+  // ── Sparkle stripper ─────────────────────────────────────────────
+  // The engine puts literal ✧/✦/✨/⋆ characters around branding text
+  // (`✧ Marinara Engine ✧` in ChatArea, `✧ Chats` in ChatSidebar
+  // header, etc) — Y2K decoration that doesn't fit the Win95 chrome.
+  // CSS can't target individual text characters, so we walk the text
+  // nodes inside `.retro-glow-text` elements and strip those chars
+  // (plus surrounding whitespace). React shouldn't normally re-render
+  // these static labels, but the 1Hz reconcile re-runs the strip in
+  // case it does. Marker attribute `data-win95-stripped` keeps us from
+  // re-traversing nodes we've already cleaned.
+  var SPARKLE_RE = /[✦✧✨★☆⋆✩✪✫✬✭✮✯]/g;
+
+  function stripSparkles() {
+    var els = document.querySelectorAll(".retro-glow-text:not([data-win95-stripped])");
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      el.setAttribute("data-win95-stripped", "");
+      var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+      var node;
+      while ((node = walker.nextNode())) {
+        if (!node.nodeValue || !SPARKLE_RE.test(node.nodeValue)) {
+          // Reset lastIndex so test() works on the next iteration too.
+          SPARKLE_RE.lastIndex = 0;
+          continue;
+        }
+        SPARKLE_RE.lastIndex = 0;
+        var cleaned = node.nodeValue.replace(SPARKLE_RE, "").replace(/\s+/g, " ").trim();
+        if (cleaned !== node.nodeValue) node.nodeValue = cleaned;
+      }
+    }
+  }
+
   // ── Boot ─────────────────────────────────────────────────────────
   marinara.on(window, "keydown", onKeydown);
   marinara.on(window, "hashchange", checkHash);
@@ -419,11 +472,13 @@
     // also contain icons we want swapped — body-scoped sweep, but
     // narrowed to unmarked Lucide SVGs only so it's cheap.
     swapIconsIn(document.body);
+    stripSparkles();
   }, POLL_MS);
 
   refreshAllChrome();
   attachSendObserver();
   attachIconObservers();
   swapIconsIn(document.body);
+  stripSparkles();
   updateStatus();
 })();
