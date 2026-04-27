@@ -346,6 +346,41 @@
     "moon":          '<path d="M5 2h4v1H5zm-2 1h2v1H3zm-1 1h1v6H2zm1 6h1v2H3zm1 2h2v1H4zm2 1h6v1H6zm0-2h7v1H6zM5 9h7v1H5zM5 7h6v1H5zM5 5h6v1H5zM6 3h5v1H6z"/>',
     "loader":        '<rect x="7" y="2" width="2" height="3"/><rect x="7" y="11" width="2" height="3"/><rect x="2" y="7" width="3" height="2"/><rect x="11" y="7" width="3" height="2"/>',
     "loader-2":      '<rect x="7" y="2" width="2" height="3"/><rect x="7" y="11" width="2" height="3"/><rect x="2" y="7" width="3" height="2"/><rect x="11" y="7" width="3" height="2"/>',
+    // ─── Batch 3 (audit-driven): navigation, media, status, dice ───
+    "bot":           '<path fill-rule="evenodd" d="M2 4h12v9H2zM3 5v7h10V5z"/><rect x="5" y="7" width="2" height="2"/><rect x="9" y="7" width="2" height="2"/><rect x="5" y="10" width="6" height="1"/><rect x="7" y="2" width="2" height="2"/>',
+    "arrow-left":    '<polygon points="2,8 8,3 8,6 14,6 14,10 8,10 8,13"/>',
+    "arrow-right":   '<polygon points="2,6 8,6 8,3 14,8 8,13 8,10 2,10"/>',
+    "arrow-up":      '<polygon points="8,2 13,8 10,8 10,14 6,14 6,8 3,8"/>',
+    "arrow-down":    '<polygon points="6,2 10,2 10,8 13,8 8,14 3,8 6,8"/>',
+    "arrow-right-left":'<polygon points="2,5 6,2 6,4 14,4 14,6 6,6 6,8"/><polygon points="14,11 10,8 10,10 2,10 2,12 10,12 10,14"/>',
+    "arrow-up-down": '<polygon points="4,1 7,4 5,4 5,11 7,11 4,14 1,11 3,11 3,4 1,4"/><polygon points="12,2 15,5 13,5 13,12 15,12 12,15 9,12 11,12 11,5 9,5"/>',
+    "chevrons-down-up":'<polygon points="3,4 13,4 8,9"/><polygon points="3,12 13,12 8,7"/>',
+    "chevrons-up-down":'<polygon points="3,8 8,3 13,8"/><polygon points="3,9 13,9 8,14"/>',
+    "move":          '<polygon points="8,1 11,4 9,4 9,7 12,7 12,5 15,8 12,11 12,9 9,9 9,12 11,12 8,15 5,12 7,12 7,9 4,9 4,11 1,8 4,5 4,7 7,7 7,4 5,4"/>',
+    // Floppy disk for save — chunky body with shutter slot top-left
+    // and label window bottom (both as fill-rule cutouts).
+    "save":          '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v3h9V3zM4 9v4h8V9zM5 10v2h6v-2z"/><rect x="4" y="3" width="2" height="3"/>',
+    "lock":          '<rect x="3" y="7" width="10" height="7"/><path fill-rule="evenodd" d="M4 2h8v6H4zM5 3v5h6V3z"/>',
+    "unlock":        '<rect x="3" y="7" width="10" height="7"/><path fill-rule="evenodd" d="M4 2h8v3H4zM5 3v2h6V3zM4 5h3v3H4zM5 6v2h2V6z"/>',
+    "play":          '<polygon points="3,3 13,8 3,13"/>',
+    "pause":         '<rect x="3" y="3" width="3" height="10"/><rect x="10" y="3" width="3" height="10"/>',
+    // Two prongs sticking up out of the plug body, with a cord
+    // trailing down. Reads as electrical plug for connection icons.
+    "plug":          '<rect x="6" y="2" width="2" height="3"/><rect x="10" y="2" width="2" height="3"/><rect x="4" y="5" width="10" height="6"/><rect x="8" y="11" width="2" height="4"/>',
+    "star":          '<polygon points="8,1 10,6 15,6 11,9 13,14 8,11 3,14 5,9 1,6 6,6"/>',
+    "hash":          '<rect x="4" y="2" width="2" height="12"/><rect x="10" y="2" width="2" height="12"/><rect x="2" y="5" width="12" height="2"/><rect x="2" y="9" width="12" height="2"/>',
+    "download":      '<rect x="7" y="2" width="2" height="6"/><polygon points="4,7 12,7 8,12"/><rect x="2" y="13" width="12" height="2"/>',
+    "camera":        '<path fill-rule="evenodd" d="M2 5h12v9H2zM3 6v7h10V6zM5 8h6v4H5zM6 9v2h4V9z"/><rect x="6" y="3" width="4" height="2"/>',
+    "clock":         '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><rect x="7" y="5" width="2" height="4"/><rect x="9" y="7" width="3" height="2"/>',
+    "history":       '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><rect x="7" y="5" width="2" height="4"/><rect x="9" y="7" width="3" height="2"/><rect x="2" y="2" width="3" height="2"/>',
+    // 5-pip die face — picked because Lucide's Dices renders two
+    // overlapping dice; we go simpler with a single die.
+    "dices":         '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><rect x="5" y="5" width="2" height="2"/><rect x="9" y="5" width="2" height="2"/><rect x="7" y="7" width="2" height="2"/><rect x="5" y="9" width="2" height="2"/><rect x="9" y="9" width="2" height="2"/>',
+    "shield":        '<polygon points="8,2 14,4 14,9 8,14 2,9 2,4"/>',
+    "compass":       '<path fill-rule="evenodd" d="M2 2h12v12H2zM3 3v10h10V3z"/><polygon points="8,4 10,8 8,12 6,8"/>',
+    "scroll-text":   '<path fill-rule="evenodd" d="M2 3h12v10H2zM3 4v8h10V4z"/><rect x="5" y="6" width="6" height="1"/><rect x="5" y="8" width="6" height="1"/><rect x="5" y="10" width="4" height="1"/>',
+    "list-checks":   '<polygon points="2,4 4,6 7,3 6,2 4,4 3,3"/><rect x="9" y="3" width="6" height="1"/><polygon points="2,9 4,11 7,8 6,7 4,9 3,8"/><rect x="9" y="8" width="6" height="1"/><rect x="9" y="13" width="6" height="1"/>',
+    "shuffle":       '<polygon points="2,4 6,4 6,2 9,5 6,8 6,6 4,6 4,10 6,10 6,8 9,11 6,14 6,12 2,12"/><rect x="9" y="11" width="3" height="1"/><polygon points="11,8 14,11 11,14"/>',
   };
 
   var ICON_MARK_ATTR = "data-win95-icon";
