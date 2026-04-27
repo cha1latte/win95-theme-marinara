@@ -22,7 +22,9 @@
   var KEY_CHROME = "marinara-win95-chrome";
   var KEY_STATUSBAR = "marinara-win95-statusbar";
   var KEY_BOOTSPLASH = "marinara-win95-bootsplash";
+  var KEY_SOUNDS = "marinara-win95-sounds";
   var SESSION_BOOT_KEY = "win95-boot-shown";
+  var SESSION_BOOT_CHIME_KEY = "win95-boot-chime-played";
 
   // Titlebar-button state machine — `_` minimize, `□` maximize,
   // `×` close. State stored per-surface under STATE_KEY_PREFIX + key.
@@ -254,12 +256,17 @@
   }
 
   function updateStatus() {
-    if (!readBool(KEY_STATUSBAR, true)) return;
-    if (!statusEl) return;
     var streaming = detectStreaming();
     var next = streaming ? "Generating…" : "Ready";
-    if (next === lastStatus) return;
-    lastStatus = next;
+    // Always detect Generating→Ready transition (= a streaming
+    // message finished) so the sound hook fires regardless of
+    // whether the statusbar is visible.
+    if (lastStatus === "Generating…" && next === "Ready") {
+      ding();
+    }
+    if (next !== lastStatus) lastStatus = next;
+    if (!readBool(KEY_STATUSBAR, true)) return;
+    if (!statusEl) return;
     statusEl.textContent = next;
   }
 
@@ -303,6 +310,10 @@
           '<label for="w95-bootsplash">Show boot splash on session start</label>' +
         '</div>' +
         '<div class="win95-settings-row">' +
+          '<input type="checkbox" id="w95-sounds" data-w95="sounds">' +
+          '<label for="w95-sounds">Play Win95 system sounds (chime / ding / error)</label>' +
+        '</div>' +
+        '<div class="win95-settings-row">' +
           '<button class="win95-skip" data-w95="splash-now" style="margin-left: 22px; padding: 2px 10px;">Show splash now</button>' +
         '</div>' +
         '<div class="win95-settings-row">' +
@@ -319,11 +330,13 @@
     var chromeEl = qs('[data-w95="chrome"]');
     var statusEl2 = qs('[data-w95="statusbar"]');
     var bootEl = qs('[data-w95="bootsplash"]');
+    var soundsEl = qs('[data-w95="sounds"]');
 
     panelLoad = function () {
       chromeEl.checked = readBool(KEY_CHROME, true);
       statusEl2.checked = readBool(KEY_STATUSBAR, true);
       bootEl.checked = readBool(KEY_BOOTSPLASH, true);
+      soundsEl.checked = readBool(KEY_SOUNDS, true);
     };
 
     marinara.on(chromeEl, "change", function () {
@@ -337,6 +350,17 @@
     });
     marinara.on(bootEl, "change", function () {
       writeBool(KEY_BOOTSPLASH, bootEl.checked);
+    });
+    marinara.on(soundsEl, "change", function () {
+      writeBool(KEY_SOUNDS, soundsEl.checked);
+      if (soundsEl.checked) {
+        // Preview the chime so the user hears what they enabled.
+        // Uses the existing audio context — counts as a user
+        // gesture, so AudioContext should already be unlocked.
+        var ac = getAudioContext();
+        if (ac && ac.state === "suspended") { try { ac.resume(); } catch (e) {} }
+        marinara.setTimeout(bootChime, 100);
+      }
     });
     marinara.on(qs('[data-w95="splash-now"]'), "click", function () {
       hidePanel();
@@ -352,6 +376,7 @@
       localStorage.removeItem(KEY_CHROME);
       localStorage.removeItem(KEY_STATUSBAR);
       localStorage.removeItem(KEY_BOOTSPLASH);
+      localStorage.removeItem(KEY_SOUNDS);
       restoreAllWindows();
       panelLoad();
       refreshAllChrome();
@@ -382,7 +407,13 @@
       hidePanel();
       return;
     }
-    if (e.key === "9" && e.ctrlKey && e.shiftKey && !e.altKey && !e.metaKey) {
+    // Use `e.code === "Digit9"` instead of `e.key === "9"` — with
+    // Shift held, `e.key` becomes "(" on US layouts (and varies by
+    // locale: "ç", "º", etc). `e.code` is layout-independent and
+    // always reports the physical key. v2.7 bugfix: prior version
+    // checked `e.key === "9"` which never matched once Shift was
+    // down, silently breaking the shortcut.
+    if (e.code === "Digit9" && e.ctrlKey && e.shiftKey && !e.altKey && !e.metaKey) {
       e.preventDefault();
       togglePanel();
     }
@@ -623,6 +654,196 @@
     }
   }
 
+  // ── Win95 system sounds (Web Audio synthesis) ────────────────────
+  // No bundled WAVs — Microsoft's actual Win95 sounds (chimes.wav,
+  // ding.wav, etc.) are copyrighted, and even if they weren't, a
+  // 30-50 KB blob of base64 audio bloats the JSON for marginal
+  // payoff. Synthesizing the equivalent tones via OscillatorNode
+  // lands close enough to "this feels Win95-y" without the
+  // bundle weight or licensing risk.
+  //
+  // Three sounds wired in v2.7:
+  //   bootChime   — C-major arpeggio when extension loads (gated
+  //                 by first user-interaction unlock, since
+  //                 browser autoplay policy blocks AudioContext
+  //                 from playing audio before any user gesture)
+  //   ding        — two-tone bell on Generating→Ready transition
+  //                 (= a streaming message finished arriving)
+  //   errorBuzz   — descending dyad on engine error toast
+  //
+  // All gated by the KEY_SOUNDS preference (default OFF per the
+  // roadmap — the chime would otherwise surprise users who didn't
+  // know what they were installing).
+  var audioCtx = null;
+  function getAudioContext() {
+    if (audioCtx) return audioCtx;
+    try {
+      var Ctor = window.AudioContext || window.webkitAudioContext;
+      if (!Ctor) return null;
+      audioCtx = new Ctor();
+    } catch (e) { return null; }
+    return audioCtx;
+  }
+  // Single tone helper — schedules an oscillator + envelope at
+  // `when` seconds from now. Triangle wave + 10ms attack + decay
+  // back to silence sounds bell-ish without the harshness of a
+  // square. Skips silently if sounds are disabled or the audio
+  // context can't be created (older browsers, locked-down
+  // environments).
+  function tone(freq, duration, when, gain) {
+    if (!readBool(KEY_SOUNDS, true)) return;
+    var ac = getAudioContext();
+    if (!ac) return;
+    when = when || 0;
+    gain = gain || 0.18;
+    try {
+      var t0 = ac.currentTime + when;
+      var osc = ac.createOscillator();
+      var g = ac.createGain();
+      osc.type = "triangle";
+      osc.frequency.value = freq;
+      osc.connect(g);
+      g.connect(ac.destination);
+      g.gain.setValueAtTime(0, t0);
+      g.gain.linearRampToValueAtTime(gain, t0 + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+      osc.start(t0);
+      osc.stop(t0 + duration + 0.05);
+    } catch (e) { /* swallow — audio is non-essential */ }
+  }
+  function bootChime() {
+    // C-major arpeggio (C4 / E4 / G4 / C5) — short, recognizable,
+    // not too long to be annoying on every page load. ~0.65s total.
+    tone(523.25, 0.4, 0.00);  // C5
+    tone(659.25, 0.4, 0.08);  // E5
+    tone(783.99, 0.4, 0.16);  // G5
+    tone(1046.50, 0.5, 0.24); // C6
+  }
+  function ding() {
+    // Two-tone bell, fifth interval (C6 → G6).
+    tone(1046.50, 0.18, 0.00, 0.14);
+    tone(1567.98, 0.22, 0.05, 0.12);
+  }
+  function errorBuzz() {
+    // Descending dyad — A3 then A2. Brief and lower-pitched so it
+    // reads as "something went wrong" without being a real error
+    // tone the engine might also play.
+    tone(220, 0.15, 0.00, 0.16);
+    tone(110, 0.20, 0.13, 0.16);
+  }
+  // Suppress the engine's own new-message notification ping
+  // (`playNotificationPing` in lib/notification-sound.ts) when our
+  // Win95 sounds are enabled — otherwise the user hears both the
+  // engine's modern ping AND our Win95 ding layered.
+  //
+  // The engine creates two sine oscillators at 880 Hz and 1320 Hz
+  // and sets their frequency via `frequency.setValueAtTime(880, now)`.
+  // Reading `frequency.value` immediately after a schedule is
+  // unreliable (the value may not have propagated through the audio
+  // thread yet), so we ALSO patch AudioParam.prototype.setValueAtTime
+  // to record the most-recently-scheduled value on the param itself
+  // and read THAT in our start() check.
+  //
+  // Our own tones use `type = "triangle"` and never hit 880/1320 Hz
+  // exactly, so they're never caught. Gated by KEY_SOUNDS so
+  // disabling our sounds restores the engine's ping naturally.
+  var oscillatorPatched = false;
+  function suppressEngineNotification() {
+    if (oscillatorPatched) return;
+    var ACtor = window.AudioContext || window.webkitAudioContext;
+    if (!ACtor || !window.AudioParam) return;
+    var origCreate = ACtor.prototype.createOscillator;
+    if (!origCreate) return;
+
+    // Track most-recently-scheduled value on every AudioParam so we
+    // can read it back synchronously at oscillator-start time.
+    var origSetValueAtTime = AudioParam.prototype.setValueAtTime;
+    if (origSetValueAtTime && !origSetValueAtTime.__win95Patched) {
+      AudioParam.prototype.setValueAtTime = function (value, when) {
+        try { this.__win95LastValue = value; } catch (e) {}
+        return origSetValueAtTime.apply(this, arguments);
+      };
+      AudioParam.prototype.setValueAtTime.__win95Patched = true;
+    }
+
+    ACtor.prototype.createOscillator = function () {
+      var osc = origCreate.call(this);
+      var origStart = osc.start.bind(osc);
+      osc.start = function () {
+        try {
+          if (readBool(KEY_SOUNDS, true) && osc.type === "sine") {
+            var freq = osc.frequency.__win95LastValue;
+            if (typeof freq !== "number") freq = osc.frequency.value;
+            if (Math.abs(freq - 880) < 10 || Math.abs(freq - 1320) < 10) {
+              // Match the engine's notification-ping pattern.
+              // Disconnect from the audio graph + no-op start/stop
+              // so no sound is produced. Our triangle-wave tones
+              // are never caught (different `type`, different freqs).
+              try { osc.disconnect(); } catch (e) {}
+              osc.start = function () {};
+              osc.stop = function () {};
+              return;
+            }
+          }
+        } catch (e) { /* defensive — fall through to original */ }
+        return origStart.apply(this, arguments);
+      };
+      return osc;
+    };
+    oscillatorPatched = true;
+  }
+
+  // Browsers block AudioContext.start until a user gesture has
+  // happened. We can't fire the boot chime on page load — but we
+  // CAN listen for the first click/keydown and fire then. Marker
+  // in sessionStorage prevents replaying on every page reload
+  // within the same browser session.
+  function unlockAndPlayBootChime() {
+    if (!readBool(KEY_SOUNDS, true)) return;
+    try {
+      if (sessionStorage.getItem(SESSION_BOOT_CHIME_KEY)) return;
+      sessionStorage.setItem(SESSION_BOOT_CHIME_KEY, "1");
+    } catch (e) { /* sessionStorage may throw in private mode */ }
+    var ac = getAudioContext();
+    if (ac && ac.state === "suspended") {
+      try { ac.resume(); } catch (e) {}
+    }
+    bootChime();
+  }
+  function armBootChime() {
+    if (!readBool(KEY_SOUNDS, true)) return;
+    var fired = false;
+    var fire = function () {
+      if (fired) return;
+      fired = true;
+      unlockAndPlayBootChime();
+    };
+    // Capture-phase listeners so we don't compete with React's
+    // event system on bubble.
+    document.addEventListener("click", fire, { once: true, capture: true });
+    document.addEventListener("keydown", fire, { once: true, capture: true });
+    document.addEventListener("touchstart", fire, { once: true, capture: true });
+  }
+  // Engine error detection — observe added nodes for toast
+  // notifications carrying error semantics. Marinara renders
+  // toasts via sonner (visible class names like
+  // `[data-sonner-toast][data-type="error"]`). Scoped observer
+  // on body, gated by the sounds preference, marks each
+  // observed toast so the same error doesn't fire ding+errorBuzz
+  // multiple times on re-renders.
+  var ERROR_TOAST_MARK = "data-win95-error-rang";
+  function checkForErrorToast(root) {
+    if (!readBool(KEY_SOUNDS, true)) return;
+    if (!root || !root.querySelectorAll) return;
+    var toasts = root.querySelectorAll('[data-sonner-toast][data-type="error"]:not([' + ERROR_TOAST_MARK + ']),' +
+                                       '[data-type="error"]:not([' + ERROR_TOAST_MARK + ']),' +
+                                       '.toast-error:not([' + ERROR_TOAST_MARK + '])');
+    for (var i = 0; i < toasts.length; i++) {
+      toasts[i].setAttribute(ERROR_TOAST_MARK, "");
+      errorBuzz();
+    }
+  }
+
   // ── Boot splash ──────────────────────────────────────────────────
   // Win95-style "Starting Marinara…" splash shown once per browser
   // session (sessionStorage gated). Auto-dismisses after the
@@ -694,6 +915,9 @@
     // narrowed to unmarked Lucide SVGs only so it's cheap.
     swapIconsIn(document.body);
     stripSparkles();
+    // Cheap scan for unrung error toasts. The marker attribute
+    // prevents double-firing on toasts we've already seen.
+    checkForErrorToast(document.body);
   }, POLL_MS);
 
   refreshAllChrome();
@@ -702,5 +926,7 @@
   swapIconsIn(document.body);
   stripSparkles();
   updateStatus();
+  suppressEngineNotification();
   showBootSplash();
+  armBootChime();
 })();
